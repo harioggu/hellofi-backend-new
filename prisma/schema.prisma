@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id                String    @id @default(uuid())
+  name              String  
+  email             String    @unique
+  password          String?   // Optional as some users may only use OTPless
+  phone             String    @unique 
+  role              Role      @default(USER)
+  
+  // Authentication & Session Management
+  refreshTokens     RefreshToken[]
+  otplessAttempts   OtplessAuthAttempt[]
+  
+  // Verification status
+  isEmailVerified   Boolean   @default(false)
+  isPhoneVerified   Boolean   @default(false)
+  
+  // Account security fields
+  failedLoginAttempts Int      @default(0)
+  lockedUntil        DateTime?
+  lastLogin          DateTime?
+  active             Boolean   @default(true)
+  
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  lastUsed  DateTime @default(now())
+  createdAt DateTime @default(now())
+  
+  // Relation to user
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OtplessAuthAttempt {
+  id          String   @id @default(uuid())
+  requestDate String   // YYYY-MM-DD format for easy grouping
+  ip          String?  // Optional IP tracking
+  device      String?  // Device information
+  successful  Boolean  @default(false)
+  
+  // For rate limiting (5 per day)
+  createdAt   DateTime @default(now())
+  
+  // Relation to user (could be null for first-time auth)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Optional identifier for non-users (like during signup)
+  email       String?
+  phone       String?
+  
+  @@index([userId, requestDate])  // For efficiently checking daily rate limits
+  @@index([email, requestDate])
+  @@index([phone, requestDate])
+  @@index([ip, requestDate])
+}
