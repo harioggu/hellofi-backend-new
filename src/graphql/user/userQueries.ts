@@ -5,5 +5,8 @@ export const queries = `
     
     # Check OTPless daily rate limit for a phone number
     checkOtplessRateLimit(phone: String!): OtplessRateLimit
+
+    # Check if a user exists by email
+    checkUserByEmail(email: String!): User
   }
 `;

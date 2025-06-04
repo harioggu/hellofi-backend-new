@@ -14,21 +14,9 @@ services:
     volumes:
       - ./:/usr/src/app
       - node_modules:/usr/src/app/node_modules
-    command: >
-      sh -c "
-        echo 'Waiting for database to be ready...' &&
-        while ! nc -z db 5432; do
-          sleep 1
-        done &&
-        echo 'Database is ready!' &&
-        rm -rf prisma/migrations/* &&
-        npx prisma migrate reset --force &&
-        npx prisma migrate dev --name init &&
-        npm run dev
-      "
+    command: npm run dev
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     networks:
       - app-network
 
@@ -44,11 +32,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
     networks:
       - app-network
 

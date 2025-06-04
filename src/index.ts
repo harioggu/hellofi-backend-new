@@ -4,6 +4,9 @@ import createApolloGraphqlServer from "./graphql";
 import UserService from "./services/User";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 async function init() {
   const app = express();
@@ -31,19 +34,7 @@ async function init() {
     expressMiddleware(apolloServer, {
       context: async ({ req, res }) => {
         // Get token from cookies instead of headers
-        let token = req.cookies?.accessToken;
-
-        // If token is not found in cookies, try parsing the cookie header manually
-        if (!token && req.headers.cookie) {
-          const cookies = req.headers.cookie.split(';');
-          for (const cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'accessToken') {
-              token = value;
-              break;
-            }
-          }
-        }
+        const token = req.cookies?.accessToken;
 
         try {
           if (token) {

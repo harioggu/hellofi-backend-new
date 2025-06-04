@@ -1,7 +1,7 @@
 import { ApolloServer } from "@apollo/server";
 import { User } from "./user";
-import { addressTypes } from "./address/types";
-import { addressResolvers } from "./address/resolvers";
+import { addressTypes } from "./address/userTypes";
+import { addressResolvers } from "./address/userResolvers";
 
 const typeDefs = [
   User.typeDefs,

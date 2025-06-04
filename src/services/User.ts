@@ -36,7 +36,7 @@ class UserService {
     return prismaClient.user.findUnique({ where: { id } });
   }
 
-  private static getUserByEmail(email: string) {
+  public static getUserByEmail(email: string) {
     return prismaClient.user.findUnique({ where: { email } });
   }
 
@@ -67,6 +67,7 @@ class UserService {
       email,
       phone,
       isPhoneVerified: true, // Phone is verified via OTPless
+      isEmailVerified: false, // Email verification required for new users
     };
 
     // If password is provided (for admin), hash it with bcrypt
