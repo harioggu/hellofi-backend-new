@@ -43,6 +43,9 @@ model User {
   // Timestamps
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  
+  // Addresses
+  addresses         Address[]
 }
 
 model RefreshToken {
@@ -79,4 +82,30 @@ model OtplessAuthAttempt {
   @@index([email, requestDate])
   @@index([phone, requestDate])
   @@index([ip, requestDate])
+}
+
+model Address {
+  id              String    @id @default(uuid())
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  name            String
+  contact         String
+  alternateContactNo String?
+  email           String
+  address         String
+  pinCode         String
+  landMark        String?
+  cityDistrict    String
+  state           String
+  gst             String?
+  addressType     AddressType
+  isDefault       Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+enum AddressType {
+  HOME
+  WORK
+  OTHER
 }

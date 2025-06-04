@@ -31,7 +31,19 @@ async function init() {
     expressMiddleware(apolloServer, {
       context: async ({ req, res }) => {
         // Get token from cookies instead of headers
-        const token = req.cookies?.accessToken;
+        let token = req.cookies?.accessToken;
+
+        // If token is not found in cookies, try parsing the cookie header manually
+        if (!token && req.headers.cookie) {
+          const cookies = req.headers.cookie.split(';');
+          for (const cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'accessToken') {
+              token = value;
+              break;
+            }
+          }
+        }
 
         try {
           if (token) {

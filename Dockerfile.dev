@@ -2,15 +2,29 @@ FROM node:20
 
 WORKDIR /usr/src/app
 
+# Install required tools
+RUN apt-get update && \
+    apt-get install -y \
+    netcat-traditional \
+    postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy package files first
 COPY package*.json ./
 
-# Install all dependencies
-RUN npm install
+# Install all dependencies including graphql-tag
+RUN npm install && \
+    npm install graphql-tag
 
-# Copy prisma schema and generate client
+# Copy prisma schema and scripts
 COPY prisma ./prisma/
+COPY scripts ./scripts/
+
+# Generate Prisma client
 RUN npx prisma generate
+
+# Make scripts executable
+RUN chmod +x ./scripts/migrate.sh
 
 # We'll mount source code as a volume, so we don't need to copy it here
 
