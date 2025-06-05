@@ -109,3 +109,22 @@ enum AddressType {
   WORK
   OTHER
 }
+
+enum CategoryType {
+  SELL
+  BUY
+}
+
+model Category {
+  id          String      @id @default(uuid())
+  name        String      // Required
+  seoName     String      @unique // Required and unique
+  categoryType CategoryType // Required
+  image       String?     // Required but can be null initially
+  priority    Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([seoName])
+  @@index([categoryType])
+}

@@ -1,0 +1,61 @@
+type Category {
+  id: ID!
+  name: String!
+  seoName: String!
+  categoryType: CategoryType!
+  image: String
+  priority: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum CategoryType {
+  SELL
+  BUY
+}
+
+input CreateCategoryInput {
+  name: String!
+  seoName: String!
+  categoryType: CategoryType!
+  image: Upload
+  priority: Int
+}
+
+input UpdateCategoryInput {
+  name: String
+  seoName: String
+  categoryType: CategoryType
+  priority: Int
+}
+
+type CategoryResponse {
+  success: Boolean!
+  message: String
+  category: Category
+}
+
+type Query {
+  getAllCategories: [Category!]!
+  getCategory(id: ID!): Category
+}
+
+type Mutation {
+  # Create a new category
+  createCategory(input: CreateCategoryInput!): CategoryResponse!
+  
+  # Update an existing category
+  updateCategory(id: ID!, input: UpdateCategoryInput!): CategoryResponse!
+  
+  # Delete a category
+  deleteCategory(id: ID!): CategoryResponse!
+  
+  # Update category image
+  updateCategoryImage(id: ID!, image: Upload!): CategoryResponse!
+  
+  # Delete category image
+  deleteCategoryImage(id: ID!): CategoryResponse!
+}
+
+scalar DateTime
+scalar Upload 
