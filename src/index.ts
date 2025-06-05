@@ -64,3 +64,4 @@ async function init() {
 }
 
 init();
+//Here the index.ts was working
