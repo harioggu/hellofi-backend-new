@@ -31,6 +31,18 @@ export interface OtplessVerificationPayload {
   name?: string; // Name from OTPless
 }
 
+interface JWTPayload {
+  id: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+  tokenType?: string;
+  iat?: number;
+  exp?: number;
+}
+
+export { JWTPayload };
+
 class UserService {
   public static getUserById(id: string) {
     return prismaClient.user.findUnique({ where: { id } });

@@ -87,6 +87,15 @@ const mutations = {
         authResponse.user.id
       );
 
+      // Set access token in HTTP-only cookie in the resolver
+      context.res.cookie("accessToken", authResponse.token, {
+        httpOnly: true,
+        secure: false, // Set to false for local HTTP development
+        sameSite: 'Lax', // 'Lax' is generally better for same-site requests
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+      console.log("Login Resolver: Access token cookie set on response with secure: false, sameSite: Lax.");
+
       return {
         ...authResponse,
         refreshToken,

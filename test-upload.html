@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test File Upload</title>
+    <style>
+        .error { color: red; }
+        .success { color: green; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+        #debug { margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h2>Test File Upload to GraphQL</h2>
+    <div id="serverStatus">Checking server status...</div>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" />
+        <button type="submit">Upload</button>
+    </form>
+    <div id="result"></div>
+    <div id="debug"></div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const resultDiv = document.getElementById('result');
+        const serverStatusDiv = document.getElementById('serverStatus');
+        const debugDiv = document.getElementById('debug');
+
+        // Check server status
+        async function checkServer() {
+            try {
+                const response = await fetch('http://localhost:8000/', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                serverStatusDiv.innerHTML = `<span class="success">Server is running: ${data.message}</span>`;
+                return true;
+            } catch (error) {
+                serverStatusDiv.innerHTML = `<span class="error">Server is not accessible: ${error.message}</span>`;
+                debugDiv.innerHTML += `<div>Server check error: ${error.message}</div>`;
+                return false;
+            }
+        }
+
+        // Check server status when page loads
+        checkServer();
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+
+            resultDiv.innerHTML = 'Uploading...';
+            debugDiv.innerHTML = '<div>Starting upload process...</div>';
+
+            // Create the operations document
+            const operations = {
+                query: `
+                    mutation UploadFile($file: Upload!) {
+                        uploadFile(file: $file, folder: "images") {
+                            url
+                            key
+                        }
+                    }
+                `,
+                variables: {
+                    file: null
+                }
+            };
+
+            // Create the map
+            const map = {
+                "0": ["variables.file"]
+            };
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('operations', JSON.stringify(operations));
+            formData.append('map', JSON.stringify(map));
+            formData.append('0', file);
+
+            try {
+                debugDiv.innerHTML += '<div>Sending upload request...</div>';
+                const response = await fetch('http://localhost:8000/graphql', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+
+                debugDiv.innerHTML += `<div>Upload response status: ${response.status}</div>`;
+                const responseText = await response.text();
+                debugDiv.innerHTML += `<div>Upload response text: ${responseText}</div>`;
+
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error(`Invalid JSON response: ${responseText}`);
+                }
+
+                if (result.errors) {
+                    resultDiv.innerHTML = `<span class="error">Error: ${result.errors[0].message}</span>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <span class="success">
+                            <h3>Upload Successful!</h3>
+                            <p>File URL: <a href="${result.data.uploadFile.url}" target="_blank">${result.data.uploadFile.url}</a></p>
+                            <p>File Key: ${result.data.uploadFile.key}</p>
+                        </span>
+                    `;
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                debugDiv.innerHTML += `<div>Upload error: ${error.message}</div>`;
+                resultDiv.innerHTML = `
+                    <span class="error">
+                        Error: ${error.message}<br>
+                        Make sure:<br>
+                        1. The server is running (npm run dev)<br>
+                        2. Your AWS credentials are correct in .env file<br>
+                        3. Check the debug information below for details
+                    </span>
+                `;
+            }
+        };
+    </script>
+</body>
+</html> 
